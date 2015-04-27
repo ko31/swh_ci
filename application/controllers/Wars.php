@@ -19,5 +19,6 @@ class Wars extends CI_Controller {
 	public function update()
 	{
 		$this->wars_model->update_history();
+        echo "done\n";
 	}
 }

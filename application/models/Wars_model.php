@@ -7,7 +7,6 @@ class Wars_model extends CI_Model {
 
     public function __construct()
     {
-        //
     }
 
     // 対局履歴データの更新
@@ -15,17 +14,23 @@ class Wars_model extends CI_Model {
     {
         $max_page = $this->config->item('my_max_page');
 
+        // 処理済みの最終対局日時を取得
+        $last_time = $this->read_lasttime();
+
         for ($i=0; $i<$max_page; $i++)
         {
             $url = $this->config->item('my_history_url') . ($i*10);
-            $this->scrape_page($url);
+            if (!$this->scrape_page($url, $last_time))
+            {
+                break;
+            }
         }
 
         return;
     }
 
     // 対局履歴ページをスクレイピングしてデータ取得
-    public function scrape_page($url)
+    public function scrape_page($url, $last_time)
     {
         $records = array();
         $newest_time = 0;
@@ -40,11 +45,8 @@ class Wars_model extends CI_Model {
         if (!count($dom))
         {
             log_message('debug', 'Data not found');
-            return;
+            return false;
         }
-
-        // 処理済みの最終対局日時を取得
-        $last_time = $this->read_lasttime();
 
         $dom->each(function ($node) use (&$records, &$newest_time, $last_time)
         {
@@ -114,9 +116,8 @@ class Wars_model extends CI_Model {
 
         // 最終対局日時書き込み
         $this->write_lasttime($newest_time);
-        log_message('debug', "The last datetime is ".$newest_time);
 
-        return;
+        return true;
     }
 
     // 履歴CSV読み込み
@@ -172,7 +173,7 @@ class Wars_model extends CI_Model {
         }
         else
         {
-            $lasttime = date('YmdHis');
+            $lasttime = 0;
         }
 
         return $lasttime;
@@ -181,7 +182,13 @@ class Wars_model extends CI_Model {
     // 最終対局日時書き込み
     public function write_lasttime($lasttime)
     {
-        file_put_contents($this->config->item('my_lasttime_file'), $lasttime);
+        // 現在保存されているより新しい日時だったら更新する
+        $current_lasttime = $this->read_lasttime();
+        if ($lasttime > $current_lasttime)
+        {
+            file_put_contents($this->config->item('my_lasttime_file'), $lasttime);
+            log_message('debug', "Last time updated to ".$lasttime);
+        }
 
         return true;
     }
