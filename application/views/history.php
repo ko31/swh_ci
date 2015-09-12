@@ -21,6 +21,7 @@ td {
 </style>
 </head>
 <body>
+<p><a href="<?php echo site_url('wars/update');?>">対局履歴を更新</a></p>
 <table>
     <tr>
         <th>対局日時</th>
