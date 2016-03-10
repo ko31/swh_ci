@@ -152,6 +152,12 @@ class Wars_model extends CI_Model {
             return falser;
         }
 
+        if (!file_exists($this->config->item('my_history_file')))
+        {
+            touch($this->config->item('my_history_file'));
+            chmod($this->config->item('my_history_file'), 0666);
+        }
+
         $fp = fopen($this->config->item('my_history_file'), 'a');
         foreach ($records as $rows)
         {
