@@ -21,4 +21,11 @@ class Wars extends CI_Controller {
 		$this->wars_model->update_history();
         echo "done\n";
 	}
+
+	public function analysis()
+	{
+		$records = $this->wars_model->get_analysis();
+        $data['records'] = $records;
+		$this->load->view('analysis', $data);
+	}
 }

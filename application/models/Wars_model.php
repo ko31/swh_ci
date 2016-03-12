@@ -198,4 +198,85 @@ class Wars_model extends CI_Model {
 
         return true;
     }
+
+    // 解析データ取得
+    public function get_analysis()
+    {
+        $records = array();
+
+        $history_file = $this->config->item('my_history_file');
+        if (!file_exists($history_file))
+        {
+            return $records;
+        }
+
+        // 対局数
+        $game_count = 0;
+        $game_count_sente = 0;
+        $game_count_gote = 0;
+        // 勝数
+        $win = 0;
+        $win_sente = 0;
+        $win_gote = 0;
+        // 負数
+        $lose = 0;
+        $lose_sente = 0;
+        $lose_gote = 0;
+
+        if ($fp = fopen($history_file, "r"))
+        {
+            while (($row = fgetcsv($fp)) !== false)
+            {
+                // 先手
+                if ($row[1] == $this->config->item('my_user_name')) {
+                    // 対局数
+                    $game_count_sente++;
+                    // 勝敗
+                    if ($row[3] == '勝') {
+                        $win_sente++;
+                    } else {
+                        $lose_sente++;
+                    }
+
+                // 後手
+                } else {
+                    // 対局数
+                    $game_count_gote++;
+                    // 勝敗
+                    if ($row[6] == '勝') {
+                        $win_gote++;
+                    } else {
+                        $lose_gote++;
+                    }
+                }
+            }
+        }
+
+        // 合計
+        $game_count = $game_count_sente + $game_count_gote;
+        $win = $win_sente + $win_gote;
+        $lose = $lose_sente + $lose_gote;
+
+        // 勝率
+        $win_rate = round(($win / $game_count), 3);
+        $win_rate_sente = round(($win_sente / $game_count_sente), 3);
+        $win_rate_gote = round(($win_gote / $game_count_gote), 3);
+
+        $records = array(
+            'game_count' => $game_count,
+            'game_count_sente' => $game_count_sente,
+            'game_count_gote' => $game_count_gote,
+            'win' => $win,
+            'win_sente' => $win_sente,
+            'win_gote' => $win_gote,
+            'lose' => $lose,
+            'lose_sente' => $lose_sente,
+            'lose_gote' => $lose_gote,
+            'win_rate' => $win_rate,
+            'win_rate_sente' => $win_rate_sente,
+            'win_rate_gote' => $win_rate_gote,
+        );
+
+        return $records;
+    }
 }
